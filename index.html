@@ -69,7 +69,7 @@
     #beneficios,#moedas{flex-direction:column;justify-content:center;gap:1rem}
     .vitrine{flex:none;width:min(70vw,15rem)}
     #beneficios .vitrine{order:-1}
-    #beneficios .painel,#moedas .painel{flex:none}
+    #beneficios .painel,#moedas .painel{flex:none;width:auto;align-self:stretch}
   }
   @media (max-width:520px){.linha{grid-template-columns:1fr}}
   @media (prefers-reduced-motion:reduce){h1{animation:none}html{scroll-behavior:auto}#som{animation:none!important}}
@@ -152,7 +152,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-(function(){
+try{(function(){
   const reduzir = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const CEU = 0x1D1350;
   const cores = [0x4DF3FF, 0x8B5CFF, 0xFF3D9A];
@@ -185,10 +185,10 @@
   // ---------- Cena principal: mapa de Minecraft ----------
   const canvas = document.getElementById('cena');
   const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false});
-  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(CEU);
-  scene.fog = new THREE.FogExp2(CEU, 0.016);
+  scene.fog = new THREE.FogExp2(CEU, 0.02);
   const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 700);
 
   scene.add(new THREE.AmbientLight(0x9d8cff, 0.75));
@@ -197,7 +197,7 @@
   scene.add(solar);
 
   // Terreno em blocos
-  const BS = 2, COLS = 72, ROWS = 260, AGUA = 3, CH = 20, ZI = 20;
+  const BS = 2, COLS = 60, ROWS = 260, AGUA = 3, CH = 20, ZI = 20;
   const alturas = new Int16Array(COLS*ROWS);
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
     let v = 5 + 3.2*Math.sin(c*0.09 + r*0.045) + 2.6*Math.sin(r*0.075 - c*0.06 + 1.7)
@@ -428,5 +428,4 @@
       }
     }
     const g = new THREE.Group();
-    g.add(malhaVoxel(cubos, 0.95, 0));
-    retur
+    g.add(mal
