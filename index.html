@@ -9,45 +9,38 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-  :root{--void:#0A0720;--ion:#4DF3FF;--plasma:#8B5CFF;--signal:#FF3D9A;--frost:#E8ECFF;--panel:rgba(14,10,42,.7)}
+  :root{
+    --void:#0A0720; --ion:#4DF3FF; --plasma:#8B5CFF; --signal:#FF3D9A; --frost:#E8ECFF;
+    --panel:rgba(14,10,42,.72);
+  }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
   body{background:var(--void);color:var(--frost);font-family:'IBM Plex Sans',system-ui,sans-serif;line-height:1.6;overflow-x:hidden}
-  body.bloqueado{overflow:hidden}
   #cena{position:fixed;inset:0;width:100%;height:100%;z-index:0;display:block}
   main{position:relative;z-index:1}
   section{min-height:100vh;display:flex;align-items:center;padding:6rem clamp(1.25rem,6vw,6rem)}
-  .painel{max-width:34rem;background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-left:3px solid var(--ion);
-          padding:2rem clamp(1.25rem,4vw,2.5rem);box-shadow:0 0 44px rgba(139,92,255,.22),inset 0 0 0 1px rgba(232,236,255,.06);transition:transform .25s ease-out}
+  .painel{max-width:34rem;background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-left:3px solid var(--ion);padding:2rem clamp(1.25rem,4vw,2.5rem)}
   h1,h2{font-family:'Unbounded',sans-serif;line-height:1.05;letter-spacing:-.02em}
-  h1{font-size:clamp(4.5rem,18vw,11rem);font-weight:900;opacity:0;
+  h1{font-size:clamp(4.5rem,18vw,11rem);font-weight:900;
      background:linear-gradient(100deg,var(--frost) 20%,var(--ion) 60%,var(--plasma));-webkit-background-clip:text;background-clip:text;color:transparent;
-     filter:drop-shadow(0 0 22px rgba(77,243,255,.45))}
-  body.pronto h1{animation:entrada 1.6s cubic-bezier(.2,.8,.2,1) both,pulso 4s ease-in-out 1.6s infinite}
-  @keyframes entrada{from{opacity:0;letter-spacing:.3em;filter:blur(16px)}to{opacity:1;letter-spacing:-.02em;filter:blur(0) drop-shadow(0 0 22px rgba(77,243,255,.45))}}
-  @keyframes pulso{50%{filter:drop-shadow(0 0 40px rgba(139,92,255,.8))}}
-  h2{font-size:clamp(1.6rem,5vw,2.6rem);font-weight:700;margin-bottom:1.25rem;text-shadow:0 0 24px rgba(77,243,255,.35)}
+     animation:entrada 1.4s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes entrada{from{opacity:0;letter-spacing:.3em;filter:blur(14px)}to{opacity:1;letter-spacing:-.02em;filter:blur(0)}}
+  h2{font-size:clamp(1.6rem,5vw,2.6rem);font-weight:700;margin-bottom:1.25rem}
   .sub{font-size:1.15rem;max-width:26rem;margin:1rem 0 2rem;color:#c9cffc}
   .botao{display:inline-block;font:700 1rem 'Unbounded',sans-serif;color:var(--void);background:var(--ion);padding:1rem 1.6rem;border:0;cursor:pointer;text-decoration:none;
-         clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));transition:background .2s,transform .2s,box-shadow .2s;box-shadow:0 0 26px rgba(77,243,255,.6)}
+         clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));transition:background .2s,transform .2s}
   .botao:hover{background:var(--frost);transform:translateX(4px)}
   .botao:disabled{opacity:.5;cursor:wait;transform:none}
-  .botao.fantasma{background:transparent;color:var(--frost);box-shadow:none;clip-path:none;border:1px solid rgba(232,236,255,.3);padding:.8rem 1.2rem}
   :focus-visible{outline:2px solid var(--signal);outline-offset:3px}
   ul.beneficios{list-style:none;display:grid;gap:1.5rem}
   ul.beneficios li{padding-left:1.1rem;border-left:2px solid var(--plasma)}
   ul.beneficios strong{display:block;font-family:'Unbounded',sans-serif;font-size:1.05rem;margin-bottom:.15rem}
-  ul.beneficios span,ol.passos span{color:#c9cffc}
-  ol.passos{list-style:none;counter-reset:passo;display:grid;gap:1.5rem}
-  ol.passos li{counter-increment:passo;padding-left:3.2rem;position:relative}
-  ol.passos li::before{content:counter(passo);position:absolute;left:0;top:0;width:2.2rem;height:2.2rem;display:grid;place-items:center;font:700 1rem 'Unbounded',sans-serif;
-         color:var(--void);background:var(--signal);box-shadow:0 0 18px rgba(255,61,154,.7);border-radius:50%}
-  ol.passos strong{display:block;font-family:'Unbounded',sans-serif;font-size:1.05rem}
+  ul.beneficios span{color:#c9cffc}
   #inscricao .painel{border-left-color:var(--signal);width:100%;max-width:30rem}
   label{display:block;font-weight:500;margin:1rem 0 .35rem}
   .opcional{color:#9aa3d9;font-weight:400}
   input,select{width:100%;font:inherit;color:var(--frost);background:rgba(232,236,255,.07);border:1px solid rgba(232,236,255,.22);padding:.8rem 1rem;border-radius:2px}
-  input:focus,select:focus{border-color:var(--ion);outline:none;box-shadow:0 0 0 3px rgba(77,243,255,.25),0 0 20px rgba(77,243,255,.25)}
+  input:focus,select:focus{border-color:var(--ion);outline:none;box-shadow:0 0 0 3px rgba(77,243,255,.25)}
   select option{background:var(--void)}
   .linha{display:grid;grid-template-columns:9rem 1fr;gap:.75rem}
   .armadilha{position:absolute;left:-9999px;height:0;overflow:hidden}
@@ -56,43 +49,12 @@
   #msg.erro{color:#ff8fb8}
   #msg.ok{color:var(--ion)}
   .depois{height:1px}
-  #entrada{position:fixed;inset:0;z-index:50;display:grid;place-items:center;text-align:center;padding:1.5rem;
-           background:radial-gradient(circle at 50% 40%,#1c1052 0%,var(--void) 70%);transition:opacity .9s ease,visibility .9s}
-  #entrada.saiu{opacity:0;visibility:hidden}
-  #entrada .logo{font:900 clamp(3rem,14vw,6rem)/1 'Unbounded',sans-serif;color:var(--frost);text-shadow:0 0 30px var(--ion),0 0 70px var(--plasma);margin-bottom:1rem}
-  #entrada p{color:#c9cffc;max-width:20rem;margin:0 auto 2rem}
-  #entrada .acoes{display:grid;gap:.9rem;justify-items:center}
-  #som{position:fixed;top:1rem;right:1rem;z-index:40;width:46px;height:46px;border-radius:50%;border:1px solid rgba(77,243,255,.6);
-       background:rgba(10,7,32,.7);color:var(--ion);cursor:pointer;display:grid;place-items:center;box-shadow:0 0 18px rgba(77,243,255,.35)}
-  #som svg{width:22px;height:22px}
-  #som .risco{display:none}
-  #som.mudo{color:#9aa3d9;border-color:rgba(232,236,255,.3);box-shadow:none}
-  #som.mudo .risco{display:block}
   @media (max-width:520px){.linha{grid-template-columns:1fr}}
-  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}body.pronto h1{animation:none;opacity:1}.painel{transition:none}}
+  @media (prefers-reduced-motion:reduce){h1{animation:none}html{scroll-behavior:auto}}
 </style>
 </head>
-<body class="bloqueado">
+<body>
 <canvas id="cena" aria-hidden="true"></canvas>
-
-<div id="entrada" role="dialog" aria-label="Entrar no site">
-  <div>
-    <div class="logo">GOD</div>
-    <p>Esse site tem sons e efeitos. Escolha como quer entrar.</p>
-    <div class="acoes">
-      <button class="botao" id="comSom" type="button">Entrar com som</button>
-      <button class="botao fantasma" id="semSom" type="button">Entrar sem som</button>
-    </div>
-  </div>
-</div>
-
-<button id="som" class="mudo" type="button" aria-label="Ligar som" aria-pressed="false">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/>
-    <path class="risco" d="M3 3l18 18"/>
-  </svg>
-</button>
-
 <main>
   <section id="topo">
     <div>
@@ -110,17 +72,6 @@
         <li><strong>Tutoriais para todos os programas</strong><span>After Effects, Alight Motion, CapCut, Premiere e mais.</span></li>
         <li><strong>Aulas ao vivo</strong><span>Tire dúvidas e aprenda técnicas direto com a team.</span></li>
       </ul>
-    </div>
-  </section>
-
-  <section id="como">
-    <div class="painel">
-      <h2>Como funciona</h2>
-      <ol class="passos">
-        <li><strong>Envie a inscrição</strong><span>Preencha o formulário com seu canal.</span></li>
-        <li><strong>A team avalia</strong><span>Olhamos seu perfil e suas edições.</span></li>
-        <li><strong>Você recebe a resposta</strong><span>Aprovado, você entra na GOD.</span></li>
-      </ol>
     </div>
   </section>
 
@@ -143,7 +94,7 @@
         <label for="discord">Discord <span class="opcional">(opcional)</span></label>
         <input id="discord" name="discord" maxlength="60" placeholder="usuario">
 
-        <label for="email">Email <span class="opcional">(para a team te responder)</span></label>
+        <label for="email">Email <span class="opcional">(para receber a resposta)</span></label>
         <input id="email" name="email" type="email" required maxlength="120" autocomplete="email">
 
         <div class="armadilha" aria-hidden="true">
@@ -163,287 +114,111 @@
 <script>
 (function(){
   const reduzir = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const toque = matchMedia('(hover: none)').matches;
+  const canvas = document.getElementById('cena');
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0A0720);
+  scene.fog = new THREE.FogExp2(0x0A0720, 0.012);
+  const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 600);
 
-  /* ===== SOM (gerado no navegador, sem arquivos) ===== */
-  const Som = {
-    ctx:null, on:false,
-    iniciar(){
-      if(this.ctx) return;
-      const C = window.AudioContext || window.webkitAudioContext;
-      if(!C) return;
-      const ctx = this.ctx = new C();
-      const m = this.master = ctx.createGain(); m.gain.value = 0; m.connect(ctx.destination);
-      const f = this.filtro = ctx.createBiquadFilter(); f.type='lowpass'; f.frequency.value=380; f.Q.value=4; f.connect(m);
-      [[55,'sawtooth',.10],[55.5,'sawtooth',.10],[82.4,'sine',.22],[110,'triangle',.06]].forEach(([fr,t,g])=>{
-        const o=ctx.createOscillator(); o.type=t; o.frequency.value=fr;
-        const v=ctx.createGain(); v.gain.value=g; o.connect(v); v.connect(f); o.start();
-      });
-      const lfo=ctx.createOscillator(); lfo.frequency.value=.07;
-      const lg=ctx.createGain(); lg.gain.value=160; lfo.connect(lg); lg.connect(f.frequency); lfo.start();
-      const buf=ctx.createBuffer(1,ctx.sampleRate*2,ctx.sampleRate), d=buf.getChannelData(0);
-      for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
-      const n=ctx.createBufferSource(); n.buffer=buf; n.loop=true;
-      const bp=this.ventoFiltro=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=600; bp.Q.value=.8;
-      const vg=this.vento=ctx.createGain(); vg.gain.value=0;
-      n.connect(bp); bp.connect(vg); vg.connect(m); n.start();
-    },
-    ligar(v){
-      if(v) this.iniciar();
-      if(!this.ctx) return;
-      this.on = v;
-      if(v && this.ctx.state==='suspended') this.ctx.resume();
-      const t=this.ctx.currentTime;
-      this.master.gain.cancelScheduledValues(t);
-      this.master.gain.setTargetAtTime(v?0.6:0,t,.25);
-    },
-    mover(p,v){
-      if(!this.on) return;
-      const t=this.ctx.currentTime;
-      this.filtro.frequency.setTargetAtTime(320+p*900+v*1400,t,.1);
-      this.vento.gain.setTargetAtTime(v*.35,t,.08);
-      this.ventoFiltro.frequency.setTargetAtTime(400+v*2600,t,.08);
-    },
-    tom(freq,dur,tipo,vol,fim){
-      if(!this.on) return;
-      const c=this.ctx,t=c.currentTime,o=c.createOscillator(),g=c.createGain();
-      o.type=tipo||'sine'; o.frequency.setValueAtTime(freq,t);
-      if(fim) o.frequency.exponentialRampToValueAtTime(fim,t+dur);
-      g.gain.setValueAtTime(vol||.15,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
-      o.connect(g); g.connect(this.master); o.start(t); o.stop(t+dur+.02);
-    },
-    blip(){ this.tom(1200,.07,'square',.05,1800); },
-    tick(){ this.tom(700,.05,'triangle',.08); },
-    clique(){ this.tom(300,.18,'sawtooth',.12,90); },
-    erro(){ this.tom(160,.25,'sawtooth',.14,90); },
-    entrar(){ this.tom(120,.9,'sawtooth',.12,900); },
-    sucesso(){
-      [523.25,659.25,783.99,1046.5].forEach((f,i)=>setTimeout(()=>this.tom(f,.5,'sine',.16),i*110));
-      this.tom(60,1.2,'sine',.4,30);
+  const cores = [0x4DF3FF, 0x8B5CFF, 0xFF3D9A];
+  const COMPRIMENTO = 360;
+
+  // Túnel de anéis
+  const aneis = [];
+  for(let i=0;i<48;i++){
+    const raio = 9 + (i%4)*2.2;
+    const geo = new THREE.TorusGeometry(raio, 0.06 + (i%3)*0.03, 8, 6 + (i%3)*2);
+    const mat = new THREE.MeshBasicMaterial({color:cores[i%3]});
+    const m = new THREE.Mesh(geo, mat);
+    m.position.z = -i * (COMPRIMENTO/48);
+    m.rotation.z = Math.random()*Math.PI;
+    m.userData.v = (Math.random()-.5)*0.004;
+    scene.add(m); aneis.push(m);
+  }
+
+  // Partículas
+  const N = 1400, pos = new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    const a = Math.random()*Math.PI*2, r = 4 + Math.random()*26;
+    pos[i*3]=Math.cos(a)*r; pos[i*3+1]=Math.sin(a)*r; pos[i*3+2]=-Math.random()*(COMPRIMENTO+40);
+  }
+  const pg = new THREE.BufferGeometry();
+  pg.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  const pontos = new THREE.Points(pg, new THREE.PointsMaterial({color:0xE8ECFF,size:0.12,transparent:true,opacity:.8}));
+  scene.add(pontos);
+
+  // Núcleo no fim do túnel
+  const nucleo = new THREE.Group();
+  const ico = new THREE.Mesh(new THREE.IcosahedronGeometry(4,1), new THREE.MeshBasicMaterial({color:0xFF3D9A,wireframe:true}));
+  const ico2 = new THREE.Mesh(new THREE.IcosahedronGeometry(2.2,0), new THREE.MeshBasicMaterial({color:0x4DF3FF,wireframe:true}));
+  nucleo.add(ico, ico2);
+  nucleo.position.z = -COMPRIMENTO - 14;
+  scene.add(nucleo);
+
+  // Objeto flutuante perto do início (hero)
+  const hero = new THREE.Mesh(new THREE.OctahedronGeometry(2.4,0), new THREE.MeshBasicMaterial({color:0x8B5CFF,wireframe:true}));
+  hero.position.set(6,1,-16);
+  scene.add(hero);
+
+  function tamanho(){
+    const w=innerWidth,h=innerHeight;
+    renderer.setSize(w,h,false);
+    camera.aspect=w/h; camera.updateProjectionMatrix();
+    hero.position.x = w<700 ? 0 : 6;
+    hero.position.y = w<700 ? 4 : 1;
+  }
+  addEventListener('resize',tamanho); tamanho();
+
+  let alvo=0, atual=0, mx=0, my=0;
+  function rolagem(){
+    const max = document.documentElement.scrollHeight - innerHeight;
+    alvo = max>0 ? scrollY/max : 0;
+  }
+  addEventListener('scroll',rolagem,{passive:true}); rolagem();
+  addEventListener('pointermove',e=>{ mx=(e.clientX/innerWidth-.5); my=(e.clientY/innerHeight-.5); });
+
+  let t=0;
+  function loop(){
+    requestAnimationFrame(loop);
+    t += 0.01;
+    atual += (alvo-atual)*(reduzir?1:0.06);
+    camera.position.z = 12 - atual*(COMPRIMENTO+8);
+    camera.position.x += (mx*3 - camera.position.x)*0.05;
+    camera.position.y += (-my*2 - camera.position.y)*0.05;
+    camera.rotation.z = Math.sin(atual*Math.PI*3)*0.12;
+    camera.lookAt(camera.position.x*0.3, camera.position.y*0.3, camera.position.z-30);
+    if(!reduzir){
+      aneis.forEach(a=>a.rotation.z += a.userData.v);
+      ico.rotation.x+=0.004; ico.rotation.y+=0.006;
+      ico2.rotation.x-=0.008; ico2.rotation.z+=0.005;
+      hero.rotation.x+=0.005; hero.rotation.y+=0.008;
+      pontos.rotation.z += 0.0004;
     }
-  };
-  document.addEventListener('visibilitychange',()=>{
-    if(!Som.ctx) return;
-    if(document.hidden) Som.ctx.suspend(); else if(Som.on) Som.ctx.resume();
-  });
-
-  /* ===== ENTRADA E BOTÃO DE SOM ===== */
-  const entrada=document.getElementById('entrada'), btnSom=document.getElementById('som');
-  function pintar(){
-    btnSom.classList.toggle('mudo',!Som.on);
-    btnSom.setAttribute('aria-pressed',String(Som.on));
-    btnSom.setAttribute('aria-label',Som.on?'Desligar som':'Ligar som');
+    renderer.render(scene,camera);
   }
-  function entrar(comSom){
-    Som.ligar(comSom); pintar();
-    if(comSom) Som.entrar();
-    entrada.classList.add('saiu');
-    document.body.classList.remove('bloqueado');
-    document.body.classList.add('pronto');
-  }
-  document.getElementById('comSom').addEventListener('click',()=>entrar(true));
-  document.getElementById('semSom').addEventListener('click',()=>entrar(false));
-  btnSom.addEventListener('click',()=>{ Som.ligar(!Som.on); pintar(); if(Som.on) Som.blip(); });
+  loop();
+})();
 
-  document.querySelectorAll('.botao,select').forEach(el=>el.addEventListener('pointerenter',()=>Som.blip()));
-  document.querySelectorAll('input').forEach(el=>el.addEventListener('focus',()=>Som.tick()));
-  document.querySelectorAll('.botao').forEach(el=>el.addEventListener('click',()=>Som.clique()));
-
-  /* ===== FORMULÁRIO ===== */
-  let explosao = function(){};
+// Formulário
+(function(){
   const form=document.getElementById('form'), msg=document.getElementById('msg'), btn=document.getElementById('enviar');
-  function aviso(t,tipo){ msg.textContent=t; msg.className=tipo||''; }
+  function aviso(t,tipo){msg.textContent=t;msg.className=tipo||''}
   form.addEventListener('submit',async e=>{
     e.preventDefault();
     const d=Object.fromEntries(new FormData(form));
-    if(!d.nome.trim()||!d.usuario.trim()){ aviso('Preencha seu nome e seu usuário.','erro'); Som.erro(); return; }
-    if(!/^\S+@\S+\.\S+$/.test(d.email)){ aviso('Digite um email válido.','erro'); Som.erro(); return; }
+    if(!d.nome.trim()||!d.usuario.trim()){aviso('Preencha seu nome e seu usuário.','erro');return}
+    if(!/^\S+@\S+\.\S+$/.test(d.email)){aviso('Digite um email válido.','erro');return}
     btn.disabled=true; btn.textContent='Enviando...'; aviso('');
     try{
       const r=await fetch('/api/inscrever',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
       const j=await r.json().catch(()=>({}));
       if(!r.ok) throw new Error(j.erro||'Não foi possível enviar. Tente de novo.');
-      form.reset(); aviso('Inscrição enviada! A team vai avaliar e te responder.','ok');
-      Som.sucesso(); explosao();
-    }catch(err){ aviso(err.message,'erro'); Som.erro(); }
-    finally{ btn.disabled=false; btn.textContent='Enviar inscrição'; }
+      form.reset(); aviso('Inscrição enviada! Você recebe a resposta por email.','ok');
+    }catch(err){aviso(err.message,'erro')}
+    finally{btn.disabled=false; btn.textContent='Enviar inscrição'}
   });
-
-  /* ===== INCLINAÇÃO 3D DOS PAINÉIS ===== */
-  if(!toque && !reduzir){
-    document.querySelectorAll('.painel').forEach(p=>{
-      p.addEventListener('pointermove',e=>{
-        const r=p.getBoundingClientRect();
-        const x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5;
-        p.style.transform='perspective(900px) rotateY('+(x*6)+'deg) rotateX('+(-y*6)+'deg)';
-      });
-      p.addEventListener('pointerleave',()=>{ p.style.transform=''; });
-    });
-  }
-
-  /* ===== CENA 3D ===== */
-  try{
-    const canvas=document.getElementById('cena');
-    const renderer=new THREE.WebGLRenderer({canvas,antialias:!toque,powerPreference:'high-performance'});
-    renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
-    const scene=new THREE.Scene();
-    scene.background=new THREE.Color(0x0A0720);
-    scene.fog=new THREE.FogExp2(0x0A0720,0.011);
-    const camera=new THREE.PerspectiveCamera(70,1,0.1,700);
-    const ADD=THREE.AdditiveBlending;
-    const cores=[0x4DF3FF,0x8B5CFF,0xFF3D9A];
-    const L=380;
-
-    // textura de brilho
-    const gc=document.createElement('canvas'); gc.width=gc.height=128;
-    const gx=gc.getContext('2d'), gr=gx.createRadialGradient(64,64,0,64,64,64);
-    gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(.25,'rgba(255,255,255,.35)'); gr.addColorStop(1,'rgba(255,255,255,0)');
-    gx.fillStyle=gr; gx.fillRect(0,0,128,128);
-    const texBrilho=new THREE.CanvasTexture(gc);
-    function brilho(cor,esc,op){
-      const s=new THREE.Sprite(new THREE.SpriteMaterial({map:texBrilho,color:cor,blending:ADD,transparent:true,depthWrite:false,opacity:op}));
-      s.scale.set(esc,esc,1); return s;
-    }
-    function luz(cor,op){ return new THREE.MeshBasicMaterial({color:cor,blending:ADD,transparent:true,opacity:op,depthWrite:false}); }
-
-    // anéis com halo
-    const aneis=[];
-    for(let i=0;i<56;i++){
-      const raio=8+(i%5)*1.8, seg=8+(i%3)*4, cor=cores[i%3];
-      const g=new THREE.Group();
-      g.add(new THREE.Mesh(new THREE.TorusGeometry(raio,.07,8,seg),luz(cor,.95)));
-      g.add(new THREE.Mesh(new THREE.TorusGeometry(raio,.34,8,seg),luz(cor,.11)));
-      g.position.z=-i*(L/56); g.rotation.z=Math.random()*Math.PI; g.userData.v=(Math.random()-.5)*.005;
-      scene.add(g); aneis.push(g);
-    }
-
-    // objetos 3D flutuantes
-    const formas=[()=>new THREE.TorusKnotGeometry(1.1,.32,80,10),()=>new THREE.IcosahedronGeometry(1.4,0),()=>new THREE.OctahedronGeometry(1.5,0),()=>new THREE.DodecahedronGeometry(1.3,0)];
-    const objetos=[];
-    for(let i=0;i<16;i++){
-      const geo=formas[i%4](), cor=cores[i%3], g=new THREE.Group();
-      g.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:cor,wireframe:true,blending:ADD,transparent:true,opacity:.9,depthWrite:false})));
-      g.add(new THREE.Mesh(geo,luz(cor,.14)));
-      g.add(brilho(cor,7,.32));
-      const ang=i*2.4, r=6.5+Math.random()*3;
-      g.position.set(Math.cos(ang)*r,Math.sin(ang)*r*.7,-28-i*(L/17));
-      g.userData={vx:.004+Math.random()*.008,vy:.004+Math.random()*.008,y0:g.position.y,f:Math.random()*6};
-      scene.add(g); objetos.push(g);
-    }
-
-    // cristal do início
-    const hero=new THREE.Group();
-    const cristalGeo=new THREE.IcosahedronGeometry(2.6,1);
-    hero.add(new THREE.Mesh(cristalGeo,new THREE.MeshBasicMaterial({color:0x8B5CFF,wireframe:true,blending:ADD,transparent:true,opacity:.95,depthWrite:false})));
-    hero.add(new THREE.Mesh(cristalGeo,luz(0x4DF3FF,.13)));
-    hero.add(brilho(0x8B5CFF,14,.5));
-    hero.position.set(6,1,-16); scene.add(hero);
-
-    // partículas
-    const N=1800, pos=new Float32Array(N*3);
-    for(let i=0;i<N;i++){
-      const a=Math.random()*Math.PI*2, r=4+Math.random()*28;
-      pos[i*3]=Math.cos(a)*r; pos[i*3+1]=Math.sin(a)*r; pos[i*3+2]=-Math.random()*(L+40);
-    }
-    const pg=new THREE.BufferGeometry(); pg.setAttribute('position',new THREE.BufferAttribute(pos,3));
-    const pontos=new THREE.Points(pg,new THREE.PointsMaterial({color:0xE8ECFF,size:.13,transparent:true,opacity:.85,blending:ADD,depthWrite:false}));
-    pontos.frustumCulled=false; scene.add(pontos);
-
-    // riscos de velocidade
-    const S=380, sp=new Float32Array(S*6), baseZ=[];
-    for(let i=0;i<S;i++){
-      const a=Math.random()*Math.PI*2, r=6+Math.random()*26, x=Math.cos(a)*r, y=Math.sin(a)*r, z=-Math.random()*(L+30);
-      sp.set([x,y,z,x,y,z],i*6); baseZ.push(z);
-    }
-    const sg=new THREE.BufferGeometry(); sg.setAttribute('position',new THREE.BufferAttribute(sp,3));
-    const sm=new THREE.LineBasicMaterial({color:0x9fe9ff,transparent:true,opacity:0,blending:ADD,depthWrite:false});
-    const riscos=new THREE.LineSegments(sg,sm); riscos.frustumCulled=false; scene.add(riscos);
-
-    // núcleo no fim do túnel
-    const nucleo=new THREE.Group();
-    const ico=new THREE.Mesh(new THREE.IcosahedronGeometry(4,1),new THREE.MeshBasicMaterial({color:0xFF3D9A,wireframe:true,blending:ADD,transparent:true,opacity:.95,depthWrite:false}));
-    const ico2=new THREE.Mesh(new THREE.IcosahedronGeometry(2.2,0),new THREE
-const ico2=new THREE.Mesh(new THREE.IcosahedronGeometry(2.2,0),new THREE.MeshBasicMaterial({color:0x4DF3FF,wireframe:true,blending:ADD,transparent:true,opacity:.95,depthWrite:false}));
-    const miolo=new THREE.Mesh(new THREE.SphereGeometry(1.3,24,24),luz(0xB59CFF,.9));
-    const halo1=brilho(0xFF3D9A,30,.55), halo2=brilho(0x4DF3FF,16,.6);
-    nucleo.add(ico,ico2,miolo,halo1,halo2);
-    nucleo.position.z=-L-16; scene.add(nucleo);
-
-    // onda de choque ao enviar a inscrição
-    const ondas=[]; let flash=0;
-    explosao=function(){
-      flash=1;
-      const o=new THREE.Mesh(new THREE.RingGeometry(1,1.25,64),new THREE.MeshBasicMaterial({color:0x4DF3FF,blending:ADD,transparent:true,opacity:1,side:THREE.DoubleSide,depthWrite:false}));
-      o.position.copy(nucleo.position); o.lookAt(camera.position); o.userData.t=0;
-      scene.add(o); ondas.push(o);
-    };
-
-    function tamanho(){
-      const w=innerWidth,h=innerHeight;
-      renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
-      hero.position.x=w<700?0:6; hero.position.y=w<700?4.5:1;
-    }
-    addEventListener('resize',tamanho); tamanho();
-
-    let alvo=0,atual=0,vel=0,mx=0,my=0,t=0;
-    function rolagem(){ const max=document.documentElement.scrollHeight-innerHeight; alvo=max>0?Math.min(1,Math.max(0,scrollY/max)):0; }
-    addEventListener('scroll',rolagem,{passive:true}); rolagem();
-    addEventListener('pointermove',e=>{ mx=e.clientX/innerWidth-.5; my=e.clientY/innerHeight-.5; });
-
-    function loop(){
-      requestAnimationFrame(loop);
-      t+=.016;
-      const diff=alvo-atual;
-      atual+=diff*(reduzir?1:.06);
-      vel+=(Math.min(1,Math.abs(diff)*12)-vel)*.12;
-      Som.mover(atual,vel);
-
-      camera.position.z=12-atual*(L+10);
-      camera.position.x+=(mx*3-camera.position.x)*.05;
-      camera.position.y+=(-my*2-camera.position.y)*.05;
-      camera.rotation.z=Math.sin(atual*Math.PI*3)*.12;
-      camera.lookAt(camera.position.x*.3,camera.position.y*.3,camera.position.z-30);
-      if(!reduzir){ camera.fov=70+vel*22; camera.updateProjectionMatrix(); }
-
-      if(!reduzir){
-        aneis.forEach(a=>{ a.rotation.z+=a.userData.v; });
-        objetos.forEach(o=>{
-          const u=o.userData; o.rotation.x+=u.vx; o.rotation.y+=u.vy;
-          o.position.y=u.y0+Math.sin(t+u.f)*.8;
-        });
-        hero.rotation.x+=.005; hero.rotation.y+=.008;
-        ico.rotation.x+=.004; ico.rotation.y+=.006;
-        ico2.rotation.x-=.008; ico2.rotation.z+=.005;
-        pontos.rotation.z+=.0004;
-      }
-
-      // riscos de velocidade
-      if(vel>.02){
-        const c=vel*16;
-        for(let i=0;i<S;i++) sp[i*6+5]=baseZ[i]-c;
-        sg.attributes.position.needsUpdate=true;
-        sm.opacity=Math.min(.7,vel*1.2);
-      } else sm.opacity=0;
-      // núcleo pulsando
-      flash*=.94;
-      const esc=1+Math.sin(t*2)*.06+flash*.6;
-      nucleo.scale.setScalar(esc);
-      halo1.material.opacity=.5+Math.sin(t*2)*.08+flash*.5;
-      halo2.material.opacity=.55+flash*.4;
-
-      for(let i=ondas.length-1;i>=0;i--){
-        const o=ondas[i]; o.userData.t+=.016;
-        o.scale.setScalar(1+o.userData.t*22);
-        o.material.opacity=Math.max(0,1-o.userData.t/1.6);
-        if(o.userData.t>1.6){ scene.remove(o); o.geometry.dispose(); o.material.dispose(); ondas.splice(i,1); }
-      }
-      renderer.render(scene,camera);
-    }
-    loop();
-  }catch(err){
-    // sem WebGL: o site continua funcionando, só sem o 3D
-    document.getElementById('cena').style.display='none';
-  }
 })();
 </script>
 </body>
