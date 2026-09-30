@@ -4,14 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GOD — Team de editores de AMV</title>
-<meta name="description" content="Inscrições abertas para a GOD, team de editores de AMV. Packs de overlay, tutoriais e aulas ao vivo.">
+<meta name="description" content="Inscrições abertas para a GOD, team de editores de AMV. Packs de overlay, tutoriais, aulas ao vivo e moedas para trocar por prêmios.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --void:#0A0720; --ion:#4DF3FF; --plasma:#8B5CFF; --signal:#FF3D9A; --frost:#E8ECFF;
-    --panel:rgba(14,10,42,.72);
+    --void:#1D1350; --ion:#4DF3FF; --plasma:#8B5CFF; --signal:#FF3D9A; --frost:#E8ECFF; --ouro:#FFC93D;
+    --panel:rgba(14,10,42,.78);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
@@ -26,8 +26,11 @@
      animation:entrada 1.4s cubic-bezier(.2,.8,.2,1) both}
   @keyframes entrada{from{opacity:0;letter-spacing:.3em;filter:blur(14px)}to{opacity:1;letter-spacing:-.02em;filter:blur(0)}}
   h2{font-size:clamp(1.6rem,5vw,2.6rem);font-weight:700;margin-bottom:1.25rem}
-  .sub{font-size:1.15rem;max-width:26rem;margin:1rem 0 2rem;color:#c9cffc}
-  .botao{display:inline-block;font:700 1rem 'Unbounded',sans-serif;color:var(--void);background:var(--ion);padding:1rem 1.6rem;border:0;cursor:pointer;text-decoration:none;
+  #topo > div{position:relative}
+  #topo > div::before{content:"";position:absolute;inset:-5rem -7rem;z-index:-1;background:radial-gradient(closest-side,rgba(14,10,42,.62),transparent)}
+  .sub{font-size:1.15rem;max-width:26rem;margin:1rem 0 2rem;color:#d5daff}
+  .texto{color:#c9cffc;margin-bottom:1.5rem}
+  .botao{display:inline-block;font:700 1rem 'Unbounded',sans-serif;color:#0A0720;background:var(--ion);padding:1rem 1.6rem;border:0;cursor:pointer;text-decoration:none;
          clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(100% - 14px));transition:background .2s,transform .2s}
   .botao:hover{background:var(--frost);transform:translateX(4px)}
   .botao:disabled{opacity:.5;cursor:wait;transform:none}
@@ -36,12 +39,25 @@
   ul.beneficios li{padding-left:1.1rem;border-left:2px solid var(--plasma)}
   ul.beneficios strong{display:block;font-family:'Unbounded',sans-serif;font-size:1.05rem;margin-bottom:.15rem}
   ul.beneficios span{color:#c9cffc}
+  #beneficios,#moedas{justify-content:space-between;gap:2rem}
+  .vitrine{flex:1;min-width:0;max-width:30rem;aspect-ratio:1}
+  .vitrine canvas{width:100%;height:100%;display:block;cursor:pointer}
+  #som{position:fixed;right:1rem;bottom:1rem;z-index:5;display:flex;align-items:center;gap:.55rem;font:500 .9rem 'IBM Plex Sans',sans-serif;color:var(--frost);
+       background:rgba(14,10,42,.88);border:1px solid var(--ion);padding:.6rem 1rem;cursor:pointer;
+       clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
+  #som svg{width:1.15rem;height:1.15rem;fill:currentColor;flex:none}
+  #som[aria-pressed=true]{border-color:var(--ouro);color:var(--ouro)}
+  #som[aria-pressed=false]{animation:pulso 2.2s ease-in-out infinite}
+  @keyframes pulso{0%,100%{box-shadow:0 0 0 0 rgba(77,243,255,0)}50%{box-shadow:0 0 0 6px rgba(77,243,255,.25)}}
+  #beneficios .painel,#moedas .painel{width:100%;flex:0 1 34rem}
+  #moedas .painel{border-left-color:var(--ouro)}
+  #moedas ul.beneficios li{border-left-color:var(--ouro)}
   #inscricao .painel{border-left-color:var(--signal);width:100%;max-width:30rem}
   label{display:block;font-weight:500;margin:1rem 0 .35rem}
   .opcional{color:#9aa3d9;font-weight:400}
   input,select{width:100%;font:inherit;color:var(--frost);background:rgba(232,236,255,.07);border:1px solid rgba(232,236,255,.22);padding:.8rem 1rem;border-radius:2px}
   input:focus,select:focus{border-color:var(--ion);outline:none;box-shadow:0 0 0 3px rgba(77,243,255,.25)}
-  select option{background:var(--void)}
+  select option{background:#0A0720}
   .linha{display:grid;grid-template-columns:9rem 1fr;gap:.75rem}
   .armadilha{position:absolute;left:-9999px;height:0;overflow:hidden}
   form .botao{margin-top:1.75rem;width:100%}
@@ -49,12 +65,22 @@
   #msg.erro{color:#ff8fb8}
   #msg.ok{color:var(--ion)}
   .depois{height:1px}
+  @media (max-width:700px){
+    #beneficios,#moedas{flex-direction:column;justify-content:center;gap:1rem}
+    .vitrine{flex:none;width:min(70vw,15rem)}
+    #beneficios .vitrine{order:-1}
+    #beneficios .painel,#moedas .painel{flex:none}
+  }
   @media (max-width:520px){.linha{grid-template-columns:1fr}}
-  @media (prefers-reduced-motion:reduce){h1{animation:none}html{scroll-behavior:auto}}
+  @media (prefers-reduced-motion:reduce){h1{animation:none}html{scroll-behavior:auto}#som{animation:none!important}}
 </style>
 </head>
 <body>
 <canvas id="cena" aria-hidden="true"></canvas>
+<button id="som" type="button" aria-pressed="false" aria-label="Ligar o som do site">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+  <span>Ligar som</span>
+</button>
 <main>
   <section id="topo">
     <div>
@@ -71,6 +97,20 @@
         <li><strong>Packs de overlay</strong><span>Overlays prontos para usar nas suas edições.</span></li>
         <li><strong>Tutoriais para todos os programas</strong><span>After Effects, Alight Motion, CapCut, Premiere e mais.</span></li>
         <li><strong>Aulas ao vivo</strong><span>Tire dúvidas e aprenda técnicas direto com a team.</span></li>
+      </ul>
+    </div>
+    <div class="vitrine"><canvas id="gema3d" aria-hidden="true"></canvas></div>
+  </section>
+
+  <section id="moedas">
+    <div class="vitrine"><canvas id="moeda3d" aria-hidden="true"></canvas></div>
+    <div class="painel">
+      <h2>Participe das aulas e ganhe moedas</h2>
+      <p class="texto">As aulas acontecem no nosso servidor do Discord. Cada aula que você participar vale de 15 a 30 moedas. Depois é só trocar por:</p>
+      <ul class="beneficios">
+        <li><strong>Pack de overlay pro</strong><span>Packs premium para turbinar suas edições.</span></li>
+        <li><strong>Assinatura mensal de programa de edição</strong><span>Um mês do programa que você usa, pago com moedas.</span></li>
+        <li><strong>Designs</strong><span>Foto de perfil, thumbnail, post e mais.</span></li>
       </ul>
     </div>
   </section>
@@ -114,112 +154,279 @@
 <script>
 (function(){
   const reduzir = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const CEU = 0x1D1350;
+  const cores = [0x4DF3FF, 0x8B5CFF, 0xFF3D9A];
+  const COMPRIMENTO = 360;
+
+  // Aleatório com semente, para o mapa ser sempre o mesmo
+  function semente(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  const rnd = semente(20260930);
+
+  // Cria uma malha de blocos (voxels) numa única chamada de desenho
+  function malhaVoxel(cubos, lado, ruido, material){
+    if(!cubos.length) return null;
+    const geo = Array.isArray(lado) ? new THREE.BoxGeometry(lado[0],lado[1],lado[2]) : new THREE.BoxGeometry(lado,lado,lado);
+    const m = new THREE.InstancedMesh(geo, material || new THREE.MeshLambertMaterial(), cubos.length);
+    const m4 = new THREE.Matrix4(), c = new THREE.Color();
+    for(let i=0;i<cubos.length;i++){
+      const v = cubos[i];
+      m4.setPosition(v.x, v.y, v.z);
+      m.setMatrixAt(i, m4);
+      c.setHex(v.cor);
+      if(ruido) c.multiplyScalar(1 + (rnd()-.5)*ruido);
+      m.setColorAt(i, c);
+    }
+    m.instanceMatrix.needsUpdate = true;
+    m.instanceColor.needsUpdate = true;
+    m.frustumCulled = false;
+    return m;
+  }
+
+  // ---------- Cena principal: mapa de Minecraft ----------
   const canvas = document.getElementById('cena');
   const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false});
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x0A0720);
-  scene.fog = new THREE.FogExp2(0x0A0720, 0.012);
-  const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 600);
+  scene.background = new THREE.Color(CEU);
+  scene.fog = new THREE.FogExp2(CEU, 0.016);
+  const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 700);
 
-  const cores = [0x4DF3FF, 0x8B5CFF, 0xFF3D9A];
-  const COMPRIMENTO = 360;
+  scene.add(new THREE.AmbientLight(0x9d8cff, 0.75));
+  const solar = new THREE.DirectionalLight(0xffd2a8, 0.8);
+  solar.position.set(-40, 70, 30);
+  scene.add(solar);
 
-  // Túnel de anéis
-  const aneis = [];
-  for(let i=0;i<48;i++){
-    const raio = 9 + (i%4)*2.2;
-    const geo = new THREE.TorusGeometry(raio, 0.06 + (i%3)*0.03, 8, 6 + (i%3)*2);
-    const mat = new THREE.MeshBasicMaterial({color:cores[i%3]});
-    const m = new THREE.Mesh(geo, mat);
-    m.position.z = -i * (COMPRIMENTO/48);
-    m.rotation.z = Math.random()*Math.PI;
-    m.userData.v = (Math.random()-.5)*0.004;
-    scene.add(m); aneis.push(m);
+  // Terreno em blocos
+  const BS = 2, COLS = 72, ROWS = 260, AGUA = 3, CH = 20, ZI = 20;
+  const alturas = new Int16Array(COLS*ROWS);
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    let v = 5 + 3.2*Math.sin(c*0.09 + r*0.045) + 2.6*Math.sin(r*0.075 - c*0.06 + 1.7)
+              + 1.4*Math.sin(c*0.23 + r*0.19) + 0.9*Math.sin(c*0.41 - r*0.37 + 2);
+    v += Math.pow(Math.abs(c - COLS/2)/(COLS/2), 2.2) * 7;
+    alturas[r*COLS+c] = Math.max(1, Math.round(v));
   }
+  const alt = (c,r)=> (c<0||c>=COLS||r<0||r>=ROWS) ? null : alturas[r*COLS+c];
 
-  // Partículas
-  const N = 1400, pos = new Float32Array(N*3);
-  for(let i=0;i<N;i++){
-    const a = Math.random()*Math.PI*2, r = 4 + Math.random()*26;
-    pos[i*3]=Math.cos(a)*r; pos[i*3+1]=Math.sin(a)*r; pos[i*3+2]=-Math.random()*(COMPRIMENTO+40);
+  const listas = [];
+  for(let k=0;k<Math.ceil(ROWS/CH);k++) listas.push([]);
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const h = alturas[r*COLS+c], L = listas[Math.floor(r/CH)];
+    const wx = (c-COLS/2)*BS + BS/2, wz = ZI - r*BS;
+    if(h < AGUA){ L.push({x:wx, y:AGUA*BS, z:wz, cor:0x2f78e8}); continue; }
+    const viz = [alt(c-1,r),alt(c+1,r),alt(c,r-1),alt(c,r+1)].map(v=> v===null ? h : Math.max(v,AGUA));
+    const ybot = Math.max(0, Math.min(h, Math.min(...viz)+1));
+    const neve = h>=13, pedra = h>=9 && !neve, areia = h<=AGUA+1;
+    const topo = neve ? 0xf2f6ff : pedra ? 0x8c8c94 : areia ? 0xe0cf8f : 0x55a23f;
+    for(let y=ybot;y<=h;y++){
+      let cor = topo;
+      if(y!==h){
+        if(neve||pedra) cor = 0x77777f;
+        else cor = (y>=h-2) ? (areia ? 0xd8c684 : 0x8a5a34) : 0x77777f;
+      }
+      L.push({x:wx, y:y*BS, z:wz, cor});
+    }
+    // Árvores
+    if(!neve && !pedra && !areia && h<=8 && rnd()<0.018){
+      for(let i=1;i<=4;i++) L.push({x:wx, y:(h+i)*BS, z:wz, cor:0x6b4a2b});
+      for(let dy=3;dy<=5;dy++){
+        const rad = dy<5 ? 2 : 1;
+        for(let dx=-rad;dx<=rad;dx++) for(let dz=-rad;dz<=rad;dz++){
+          if(rad===2 && Math.abs(dx)===2 && Math.abs(dz)===2) continue;
+          if(dy<=4 && dx===0 && dz===0) continue;
+          L.push({x:wx+dx*BS, y:(h+dy)*BS, z:wz+dz*BS, cor:0x2f7d2a});
+        }
+      }
+    }
   }
-  const pg = new THREE.BufferGeometry();
-  pg.setAttribute('position', new THREE.BufferAttribute(pos,3));
-  const pontos = new THREE.Points(pg, new THREE.PointsMaterial({color:0xE8ECFF,size:0.12,transparent:true,opacity:.8}));
-  scene.add(pontos);
+  const chunks = [];
+  listas.forEach((L,k)=>{
+    const m = malhaVoxel(L, BS, 0.12);
+    if(!m) return;
+    scene.add(m);
+    chunks.push({m, zmin: ZI-(k+1)*CH*BS - 8, zmax: ZI-k*CH*BS + 8});
+  });
 
-  // Núcleo no fim do túnel
-  const nucleo = new THREE.Group();
-  const ico = new THREE.Mesh(new THREE.IcosahedronGeometry(4,1), new THREE.MeshBasicMaterial({color:0xFF3D9A,wireframe:true}));
-  const ico2 = new THREE.Mesh(new THREE.IcosahedronGeometry(2.2,0), new THREE.MeshBasicMaterial({color:0x4DF3FF,wireframe:true}));
-  nucleo.add(ico, ico2);
-  nucleo.position.z = -COMPRIMENTO - 14;
-  scene.add(nucleo);
+  // Altura do chão sob a câmera (com folga para árvores)
+  function solo(x,z){
+    const c = Math.floor(x/BS + COLS/2), r = Math.floor((ZI-z)/BS);
+    let m = AGUA;
+    for(let dc=-3;dc<=3;dc++) for(let dr=-3;dr<=3;dr++){
+      const cc=c+dc, rr=r+dr;
+      if(cc<0||cc>=COLS||rr<0||rr>=ROWS) continue;
+      m = Math.max(m, alturas[rr*COLS+cc]);
+    }
+    return m*BS + BS/2;
+  }
+  const alturaAlvo = (x,z)=> Math.max(solo(x,z), solo(x,z-30)) + 14;
+  let baseY = alturaAlvo(0,12), offY = 0;
+  const startY = baseY;
+  camera.position.set(0, baseY, 12);
 
-  // Objeto flutuante perto do início (hero)
-  const hero = new THREE.Mesh(new THREE.OctahedronGeometry(2.4,0), new THREE.MeshBasicMaterial({color:0x8B5CFF,wireframe:true}));
-  hero.position.set(6,1,-16);
-  scene.add(hero);
+  // Nuvens de blocos
+  const nuv = [];
+  for(let i=0;i<46;i++){
+    const cx=(rnd()-.5)*220, cz=20-rnd()*(COMPRIMENTO+200), cy=72+rnd()*14, n=3+Math.floor(rnd()*5);
+    for(let j=0;j<n;j++) nuv.push({x:cx+(j%3)*8+(rnd()-.5)*3, y:cy+(rnd()<.2?3:0), z:cz+Math.floor(j/3)*8, cor:0xD2C9FF});
+  }
+  const nuvens = malhaVoxel(nuv, [8,3,8], 0.1, new THREE.MeshBasicMaterial({transparent:true, opacity:.5}));
+  scene.add(nuvens);
 
+  // Lua quadrada e estrelas, acompanham a câmera
+  const lua = new THREE.Group();
+  lua.add(new THREE.Mesh(new THREE.BoxGeometry(16,16,3), new THREE.MeshBasicMaterial({color:0xfff1c9, fog:false})));
+  [[-3,2],[3,-3],[4,4]].forEach(([x,y])=>{
+    const cr = new THREE.Mesh(new THREE.BoxGeometry(4,4,.5), new THREE.MeshBasicMaterial({color:0xe3cb96, fog:false}));
+    cr.position.set(x,y,1.8); lua.add(cr);
+  });
+  scene.add(lua);
+
+  const NE = 800, pe = new Float32Array(NE*3);
+  for(let i=0;i<NE;i++){
+    const az=rnd()*Math.PI*2, el=0.1+rnd()*1.2, R=400;
+    pe[i*3]=Math.cos(el)*Math.cos(az)*R; pe[i*3+1]=Math.sin(el)*R; pe[i*3+2]=Math.cos(el)*Math.sin(az)*R;
+  }
+  const geoEstrelas = new THREE.BufferGeometry();
+  geoEstrelas.setAttribute('position', new THREE.BufferAttribute(pe,3));
+  const estrelas = new THREE.Points(geoEstrelas, new THREE.PointsMaterial({color:0xE8ECFF, size:2, sizeAttenuation:false, fog:false}));
+  scene.add(estrelas);
+
+  // ---------- Tela principal: conjunto de objetos 3D animados ----------
+  const ben = new THREE.Group();
+  const knot = new THREE.Mesh(
+    new THREE.TorusKnotGeometry(2.2, 0.5, 140, 14, 2, 3),
+    new THREE.MeshBasicMaterial({color:0x4DF3FF, wireframe:true})
+  );
+  ben.add(knot);
+  const cuboGeo = new THREE.BoxGeometry(2.4, 2.4, 2.4);
+  const cubo = new THREE.Group();
+  cubo.add(new THREE.LineSegments(new THREE.EdgesGeometry(cuboGeo), new THREE.LineBasicMaterial({color:0xFF3D9A})));
+  cubo.add(new THREE.Mesh(cuboGeo, new THREE.MeshBasicMaterial({color:0xFF3D9A, transparent:true, opacity:.16})));
+  cubo.position.set(-4.6, -3.6, 1.5);
+  ben.add(cubo);
+  const octa = new THREE.Mesh(new THREE.OctahedronGeometry(1.3, 0), new THREE.MeshBasicMaterial({color:0x8B5CFF, wireframe:true}));
+  octa.position.set(4.4, 3.8, -1);
+  ben.add(octa);
+  const anel = new THREE.Mesh(
+    new THREE.TorusGeometry(6.2, 0.03, 6, 90),
+    new THREE.MeshBasicMaterial({color:0x8B5CFF, transparent:true, opacity:.55})
+  );
+  anel.rotation.x = Math.PI/2.4;
+  ben.add(anel);
+  const satelites = [];
+  for(let i=0;i<6;i++){
+    const pivo = new THREE.Group();
+    const tet = new THREE.Mesh(new THREE.TetrahedronGeometry(0.4), new THREE.MeshBasicMaterial({color:cores[i%3]}));
+    tet.position.x = 6.2;
+    pivo.add(tet);
+    pivo.rotation.set(i*0.6, i*1.05, i*0.5);
+    pivo.userData.v = 0.006 + i*0.0015;
+    ben.add(pivo);
+    satelites.push({pivo, tet});
+  }
+  scene.add(ben);
+
+  function posicionar(){
+    const larga = innerWidth >= 700, dist = 24;
+    ben.position.set(larga ? 11 : 0, startY + (larga ? -3 : 14), 12 - dist);
+    ben.scale.setScalar(larga ? 1 : 0.6);
+  }
   function tamanho(){
     const w=innerWidth,h=innerHeight;
     renderer.setSize(w,h,false);
     camera.aspect=w/h; camera.updateProjectionMatrix();
-    hero.position.x = w<700 ? 0 : 6;
-    hero.position.y = w<700 ? 4 : 1;
+    posicionar();
   }
   addEventListener('resize',tamanho); tamanho();
 
-  let alvo=0, atual=0, mx=0, my=0;
-  function rolagem(){
-    const max = document.documentElement.scrollHeight - innerHeight;
-    alvo = max>0 ? scrollY/max : 0;
-  }
-  addEventListener('scroll',rolagem,{passive:true}); rolagem();
-  addEventListener('pointermove',e=>{ mx=(e.clientX/innerWidth-.5); my=(e.clientY/innerHeight-.5); });
-
-  let t=0;
-  function loop(){
-    requestAnimationFrame(loop);
-    t += 0.01;
-    atual += (alvo-atual)*(reduzir?1:0.06);
-    camera.position.z = 12 - atual*(COMPRIMENTO+8);
-    camera.position.x += (mx*3 - camera.position.x)*0.05;
-    camera.position.y += (-my*2 - camera.position.y)*0.05;
-    camera.rotation.z = Math.sin(atual*Math.PI*3)*0.12;
-    camera.lookAt(camera.position.x*0.3, camera.position.y*0.3, camera.position.z-30);
-    if(!reduzir){
-      aneis.forEach(a=>a.rotation.z += a.userData.v);
-      ico.rotation.x+=0.004; ico.rotation.y+=0.006;
-      ico2.rotation.x-=0.008; ico2.rotation.z+=0.005;
-      hero.rotation.x+=0.005; hero.rotation.y+=0.008;
-      pontos.rotation.z += 0.0004;
+  // ---------- Vitrines 3D (canvas ao lado do texto) ----------
+  function vitrine(id, construir){
+    const cv = document.getElementById(id);
+    const r = new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:true});
+    r.setPixelRatio(Math.min(devicePixelRatio,2));
+    const cena = new THREE.Scene();
+    const cam = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    cam.position.set(0, 0, 22);
+    cena.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const sol = new THREE.DirectionalLight(0xffffff, 0.9);
+    sol.position.set(6, 9, 12);
+    cena.add(sol);
+    const anim = construir(cena);
+    let visivel = false;
+    if('IntersectionObserver' in window) new IntersectionObserver(es=>{ visivel = es[0].isIntersecting; }).observe(cv);
+    else visivel = true;
+    function tam(){
+      const w=cv.clientWidth, h=cv.clientHeight;
+      if(!w||!h) return;
+      r.setSize(w,h,false);
+      cam.aspect=w/h; cam.updateProjectionMatrix();
     }
-    renderer.render(scene,camera);
+    addEventListener('resize',tam);
+    if('ResizeObserver' in window) new ResizeObserver(tam).observe(cv);
+    tam();
+    return { desenhar(t){ if(!visivel) return; anim(t); r.render(cena,cam); } };
   }
-  loop();
-})();
 
-// Formulário
-(function(){
-  const form=document.getElementById('form'), msg=document.getElementById('msg'), btn=document.getElementById('enviar');
-  function aviso(t,tipo){msg.textContent=t;msg.className=tipo||''}
-  form.addEventListener('submit',async e=>{
-    e.preventDefault();
-    const d=Object.fromEntries(new FormData(form));
-    if(!d.nome.trim()||!d.usuario.trim()){aviso('Preencha seu nome e seu usuário.','erro');return}
-    if(!/^\S+@\S+\.\S+$/.test(d.email)){aviso('Digite um email válido.','erro');return}
-    btn.disabled=true; btn.textContent='Enviando...'; aviso('');
-    try{
-      const r=await fetch('/api/inscrever',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
-      const j=await r.json().catch(()=>({}));
-      if(!r.ok) throw new Error(j.erro||'Não foi possível enviar. Tente de novo.');
-      form.reset(); aviso('Inscrição enviada! Você recebe a resposta por email.','ok');
-    }catch(err){aviso(err.message,'erro')}
-    finally{btn.disabled=false; btn.textContent='Enviar inscrição'}
+  // Gema de diamante feita de blocos
+  function criarGema(){
+    const cubos = [];
+    for(let x=-6;x<=6;x++) for(let y=-8;y<=8;y++) for(let z=-6;z<=6;z++){
+      const d = Math.abs(x) + Math.abs(z) + Math.abs(y)*0.75;
+      if(d>5.2 || d<3.6) continue;
+      const cor = y>=3 ? 0xB9FCFF : y>=0 ? 0x4DF3FF : y>=-3 ? 0x27C6DB : 0x1697AD;
+      cubos.push({x,y,z,cor});
+    }
+    const g = new THREE.Group();
+    g.add(malhaVoxel(cubos, 0.95, 0.06, new THREE.MeshLambertMaterial({emissive:0x0b3a44})));
+    return g;
+  }
+  const gema = vitrine('gema3d', cena=>{
+    const grande = criarGema();
+    grande.scale.setScalar(0.55);
+    grande.rotation.x = 0.2;
+    cena.add(grande);
+    const pequenas = [];
+    for(let i=0;i<3;i++){
+      const pivo = new THREE.Group();
+      const g = criarGema();
+      g.scale.setScalar(0.12);
+      g.position.x = 6.5;
+      pivo.add(g);
+      pivo.rotation.set(i*0.5, i*2.1, i*0.4);
+      pivo.userData.v = 0.008 + i*0.002;
+      cena.add(pivo);
+      pequenas.push({pivo,g});
+    }
+    return t=>{
+      if(reduzir) return;
+      grande.rotation.y += 0.014;
+      grande.position.y = Math.sin(t*1.5)*0.5;
+      pequenas.forEach(p=>{ p.pivo.rotation.y += p.pivo.userData.v; p.g.rotation.y += 0.05; });
+    };
   });
-})();
-</script>
-</body>
-</html>
+
+  // Moeda pixel estilo Minecraft (com T no lugar do M)
+  function criarMoeda(){
+    const G = 14;
+    const c = {borda:0xFFE27A, brilho:0xFFD65A, ouro:0xF6B92B, sombra:0xC98A12, lado:0xB87A0E, t:0x7A4A08};
+    const dentro = (x,y)=>{ const dx=x-6.5, dy=y-6.5; return dx*dx+dy*dy <= 6.6*6.6; };
+    const ehT = (x,y)=> ((y===9||y===10) && x>=4 && x<=9) || (y>=3 && y<=8 && (x===6||x===7));
+    const cubos = [];
+    for(let x=0;x<G;x++) for(let y=0;y<G;y++){
+      if(!dentro(x,y)) continue;
+      const borda = !dentro(x-1,y)||!dentro(x+1,y)||!dentro(x,y-1)||!dentro(x,y+1);
+      for(let z=0;z<3;z++){
+        let cor;
+        if(z===1) cor = c.lado;
+        else if(borda) cor = c.borda;
+        else if(ehT(x,y)) cor = c.t;
+        else {
+          cor = c.ouro;
+          if(x-y >= 3) cor = c.sombra;
+          else if(y-x >= 5 && (x+y)%2===0) cor = c.brilho;
+        }
+        cubos.push({x:x-6.5, y:y-6.5, z:z-1, cor});
+      }
+    }
+    const g = new THREE.Group();
+    g.add(malhaVoxel(cubos, 0.95, 0));
+    retur
