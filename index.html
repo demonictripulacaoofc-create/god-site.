@@ -404,4 +404,297 @@
   function criarGema(){
     const cubos = [];
     for(let x=-6;x<=6;x++) for(let y=-8;y<=8;y++) for(let z=-6;z<=6;z++){
-      const d = Math.abs(x) + Mat
+      const d = Math.abs(x) + Math.abs(z) + Math.abs(y)*0.75;
+      if(d>5.2 || d<3.6) continue;
+      const cor = y>=3 ? 0xB9FCFF : y>=0 ? 0x4DF3FF : y>=-3 ? 0x27C6DB : 0x1697AD;
+      cubos.push({x:x,y:y,z:z,cor:cor});
+    }
+    const g = new THREE.Group();
+    g.add(malhaVoxel(cubos, 1, 0.06, new THREE.MeshLambertMaterial({vertexColors:true, emissive:0x0b3a44})));
+    return g;
+  }
+  const gema = seguro('diamante', ()=> vitrine('gema3d', cena=>{
+    const grande = criarGema();
+    grande.scale.setScalar(0.55);
+    grande.rotation.x = 0.2;
+    cena.add(grande);
+    const pequenas = [];
+    for(let i=0;i<3;i++){
+      const pivo = new THREE.Group();
+      const g = criarGema();
+      g.scale.setScalar(0.12);
+      g.position.x = 6.5;
+      pivo.add(g);
+      pivo.rotation.set(i*0.5, i*2.1, i*0.4);
+      pivo.userData.v = 0.008 + i*0.002;
+      cena.add(pivo);
+      pequenas.push({pivo:pivo,g:g});
+    }
+    return t=>{
+      if(reduzir) return;
+      grande.rotation.y += 0.014;
+      grande.position.y = Math.sin(t*1.5)*0.5;
+      pequenas.forEach(p=>{ p.pivo.rotation.y += p.pivo.userData.v; p.g.rotation.y += 0.05; });
+    };
+  }));
+
+  function criarMoeda(){
+    const G = 14;
+    const c = {borda:0xFFE27A, brilho:0xFFD65A, ouro:0xF6B92B, sombra:0xC98A12, lado:0xB87A0E, t:0x7A4A08};
+    const dentro = (x,y)=>{ const dx=x-6.5, dy=y-6.5; return dx*dx+dy*dy <= 6.6*6.6; };
+    const ehT = (x,y)=> ((y===9||y===10) && x>=4 && x<=9) || (y>=3 && y<=8 && (x===6||x===7));
+    const cubos = [];
+    for(let x=0;x<G;x++) for(let y=0;y<G;y++){
+      if(!dentro(x,y)) continue;
+      const borda = !dentro(x-1,y)||!dentro(x+1,y)||!dentro(x,y-1)||!dentro(x,y+1);
+      for(let z=0;z<3;z++){
+        let cor;
+        if(z===1) cor = c.lado;
+        else if(borda) cor = c.borda;
+        else if(ehT(x,y)) cor = c.t;
+        else {
+          cor = c.ouro;
+          if(x-y >= 3) cor = c.sombra;
+          else if(y-x >= 5 && (x+y)%2===0) cor = c.brilho;
+        }
+        cubos.push({x:x-6.5, y:y-6.5, z:z-1, cor:cor});
+      }
+    }
+    const g = new THREE.Group();
+    g.add(malhaVoxel(cubos, 1, 0.05));
+    return g;
+  }
+  const moeda = seguro('moeda', ()=> vitrine('moeda3d', cena=>{
+    const grande = criarMoeda();
+    grande.scale.setScalar(0.5);
+    grande.rotation.x = 0.15;
+    cena.add(grande);
+    const pequenas = [];
+    for(let i=0;i<3;i++){
+      const pivo = new THREE.Group();
+      const m = criarMoeda();
+      m.scale.setScalar(0.14);
+      m.position.x = 6;
+      pivo.add(m);
+      pivo.rotation.set(i*0.5, i*2.1, i*0.4);
+      pivo.userData.v = 0.008 + i*0.002;
+      cena.add(pivo);
+      pequenas.push({pivo:pivo,m:m});
+    }
+    return t=>{
+      if(reduzir) return;
+      grande.rotation.y += 0.018;
+      grande.position.y = Math.sin(t*1.6)*0.5;
+      pequenas.forEach(p=>{ p.pivo.rotation.y += p.pivo.userData.v; p.m.rotation.y += 0.05; });
+    };
+  }));
+
+  // ---------- Rolagem e câmera ----------
+  let alvo=0, atual=0, mx=0, my=0, offY=0;
+  function rolagem(){
+    const max = document.documentElement.scrollHeight - innerHeight;
+    alvo = max>0 ? scrollY/max : 0;
+  }
+  addEventListener('scroll',rolagem,{passive:true}); rolagem();
+  addEventListener('pointermove',e=>{ mx=(e.clientX/innerWidth-.5); my=(e.clientY/innerHeight-.5); });
+
+  let t=0, falhou=false, falhouV=false;
+  function passo(){
+    t += 0.01;
+    atual += (alvo-atual)*(reduzir?1:0.06);
+    const cz = 12 - atual*(COMPRIMENTO+8);
+    const trilha = Math.sin(atual*Math.PI*3)*12;
+    camera.position.z = cz;
+    camera.position.x += (trilha + mx*3 - camera.position.x)*0.05;
+    baseY += (alturaAlvo(camera.position.x, cz) - baseY)*0.04;
+    offY += (-my*2 - offY)*0.05;
+    camera.position.y = baseY + offY;
+    camera.lookAt(camera.position.x*0.5, camera.position.y-7, cz-30);
+    camera.rotateZ(-Math.sin(atual*Math.PI*3)*0.08);
+
+    chunks.forEach(c=>{ c.m.visible = c.zmax > cz-150 && c.zmin < cz+40; });
+    if(lua) lua.position.set(camera.position.x-75, camera.position.y+105, cz-330);
+    if(estrelas) estrelas.position.copy(camera.position);
+
+    if(!reduzir){
+      if(nuvens) nuvens.position.x = Math.sin(t*0.25)*12;
+      if(ben){
+        ben.visible = cz - ben.position.z > -10;
+        if(ben.visible){
+          knot.rotation.x += 0.006; knot.rotation.y += 0.009;
+          knot.position.y = Math.sin(t*1.3)*0.5;
+          cubo.rotation.x += 0.011; cubo.rotation.y += 0.015;
+          cubo.position.y = -3.6 + Math.sin(t*1.7 + 1)*0.6;
+          octa.rotation.x -= 0.01; octa.rotation.y += 0.014;
+          octa.position.y = 3.8 + Math.sin(t*1.5 + 2)*0.5;
+          anel.rotation.z += 0.004;
+          satelites.forEach(s=>{ s.pivo.rotation.y += s.pivo.userData.v; s.tet.rotation.x += 0.03; s.tet.rotation.y += 0.02; });
+        }
+      }
+    }
+    renderer.render(scene,camera);
+  }
+  function loop(){
+    requestAnimationFrame(loop);
+    try{ passo(); }catch(e){ if(!falhou){ falhou=true; aviso3d('animação', e); } }
+    try{ if(gema) gema.desenhar(t); if(moeda) moeda.desenhar(t); }catch(e){ if(!falhouV){ falhouV=true; aviso3d('vitrines', e); } }
+  }
+  loop();
+})();
+</script>
+<script>
+// Som (tudo sintetizado no navegador, sem arquivos de áudio)
+(function(){
+  const btn = document.getElementById('som'), rotulo = btn.querySelector('span');
+  let ctx=null, mestre=null, musica=null, reverb=null, ligado=false, ruidoBuf=null;
+
+  function iniciar(){
+    ctx = new (window.AudioContext||window.webkitAudioContext)();
+    mestre = ctx.createGain(); mestre.gain.value = 0.6; mestre.connect(ctx.destination);
+    const len = Math.floor(ctx.sampleRate*2.5), buf = ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let c=0;c<2;c++){ const d=buf.getChannelData(c); for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,3); }
+    reverb = ctx.createConvolver(); reverb.buffer = buf;
+    const rg = ctx.createGain(); rg.gain.value = 0.55; reverb.connect(rg); rg.connect(mestre);
+    musica = ctx.createGain(); musica.gain.value = 0.5; musica.connect(mestre); musica.connect(reverb);
+    const rb = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate), rd = rb.getChannelData(0);
+    for(let i=0;i<rd.length;i++) rd[i] = Math.random()*2-1;
+    ruidoBuf = rb;
+  }
+
+  function nota(freq, ini, dur, tipo, vol, destino){
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = tipo; o.frequency.setValueAtTime(freq, ini);
+    g.gain.setValueAtTime(0.0001, ini);
+    g.gain.linearRampToValueAtTime(vol, ini+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, ini+dur);
+    o.connect(g); g.connect(destino || mestre);
+    o.start(ini); o.stop(ini+dur+0.05);
+  }
+
+  // Trilha de fundo: arquivo musica.mp3 (fica na mesma pasta do index.html)
+  const trilha = new Audio('musica.mp3');
+  trilha.loop = true; trilha.preload = 'none'; trilha.volume = 0;
+  const VOL = 0.35;
+  let fade = null;
+  function volumeTrilha(alvo, fim){
+    clearInterval(fade);
+    fade = setInterval(()=>{
+      const d = alvo - trilha.volume;
+      if(Math.abs(d) < 0.02){ trilha.volume = alvo; clearInterval(fade); if(fim) fim(); return; }
+      trilha.volume = Math.min(1, Math.max(0, trilha.volume + Math.sign(d)*0.02));
+    }, 50);
+  }
+  function tocarTrilha(){ const p = trilha.play(); if(p && p.catch) p.catch(()=>{}); volumeTrilha(VOL); }
+  function pararTrilha(){ volumeTrilha(0, ()=>trilha.pause()); }
+
+  // Efeitos
+  const efeitos = {
+    blip(f){ nota(f||520, ctx.currentTime, 0.08, 'square', 0.07); },
+    moeda(){ const t=ctx.currentTime; nota(987.77,t,0.09,'square',0.09); nota(1318.5,t+0.09,0.4,'square',0.09); },
+    gema(){ const t=ctx.currentTime; [880,1108.7,1318.5,1760].forEach((f,i)=>nota(f,t+i*0.07,0.9,'sine',0.14,musica)); },
+    sucesso(){ const t=ctx.currentTime; [523.25,659.25,783.99,1046.5].forEach((f,i)=>nota(f,t+i*0.09,0.25,'square',0.08)); },
+    erro(){
+      const t=ctx.currentTime, o=ctx.createOscillator(), g=ctx.createGain();
+      o.type='sawtooth'; o.frequency.setValueAtTime(180,t); o.frequency.exponentialRampToValueAtTime(70,t+0.28);
+      g.gain.setValueAtTime(0.09,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.3);
+      o.connect(g); g.connect(mestre); o.start(t); o.stop(t+0.32);
+    },
+    whoosh(){
+      const t=ctx.currentTime, s=ctx.createBufferSource(), f=ctx.createBiquadFilter(), g=ctx.createGain();
+      s.buffer = ruidoBuf; s.loop = true;
+      f.type='bandpass'; f.Q.value=1.2;
+      f.frequency.setValueAtTime(300,t); f.frequency.exponentialRampToValueAtTime(1800,t+0.5);
+      g.gain.setValueAtTime(0.0001,t); g.gain.linearRampToValueAtTime(0.12,t+0.15); g.gain.exponentialRampToValueAtTime(0.0001,t+0.6);
+      s.connect(f); f.connect(g); g.connect(mestre); s.start(t); s.stop(t+0.65);
+    }
+  };
+  function tocar(nome, arg){ if(ligado && ctx && ctx.state==='running') efeitos[nome](arg); }
+  window.somGOD = {sucesso:()=>tocar('sucesso'), erro:()=>tocar('erro')};
+
+  function ligar(){
+    if(!ctx) iniciar();
+    ctx.resume();
+    ligado = true;
+    tocarTrilha();
+    btn.setAttribute('aria-pressed','true'); btn.setAttribute('aria-label','Desligar o som do site');
+    rotulo.textContent = 'Som ligado';
+    try{localStorage.setItem('somGOD','1')}catch(e){}
+    efeitos.moeda();
+  }
+  function desligar(){
+    ligado = false;
+    pararTrilha();
+    btn.setAttribute('aria-pressed','false'); btn.setAttribute('aria-label','Ligar o som do site');
+    rotulo.textContent = 'Ligar som';
+    try{localStorage.setItem('somGOD','0')}catch(e){}
+  }
+  btn.addEventListener('click', ()=> ligado ? desligar() : ligar());
+
+  // Se a pessoa já ligou o som antes, retoma no primeiro toque (o navegador exige um gesto)
+  let pref=null; try{pref=localStorage.getItem('somGOD')}catch(e){}
+  if(pref==='1') addEventListener('pointerdown', e=>{ if(!ligado && !btn.contains(e.target)) ligar(); }, {once:true});
+
+  document.addEventListener('visibilitychange', ()=>{
+    if(!ctx || !ligado) return;
+    if(document.hidden){ ctx.suspend(); trilha.pause(); }
+    else { ctx.resume(); tocarTrilha(); }
+  });
+
+  // Sons de interface
+  const ultimo = {t:0};
+  document.addEventListener('pointerover', e=>{
+    if(e.pointerType==='touch') return;
+    if(e.target.closest('.botao') && performance.now()-ultimo.t>120){ ultimo.t=performance.now(); tocar('blip',700); }
+  });
+  document.addEventListener('click', e=>{
+    if(e.target.closest('.botao')) tocar('blip',880);
+  });
+  document.addEventListener('focusin', e=>{
+    if(e.target.matches('input,select')) tocar('blip',440);
+  });
+  document.getElementById('moeda3d').addEventListener('click', ()=>tocar('moeda'));
+  document.getElementById('gema3d').addEventListener('click', ()=>tocar('gema'));
+
+  // Som de passagem ao chegar em cada seção
+  let secaoAtual = null;
+  if('IntersectionObserver' in window){
+    const io = new IntersectionObserver(es=>{
+      es.forEach(en=>{
+        if(!en.isIntersecting || en.target.id===secaoAtual) return;
+        const primeira = secaoAtual===null;
+        secaoAtual = en.target.id;
+        if(primeira) return;
+        tocar('whoosh');
+        if(secaoAtual==='moedas') setTimeout(()=>tocar('moeda'), 250);
+        if(secaoAtual==='beneficios') setTimeout(()=>tocar('gema'), 250);
+      });
+    }, {threshold:0.55});
+    document.querySelectorAll('main section').forEach(s=>io.observe(s));
+  }
+})();
+
+</script>
+<script>
+// Formulário
+(function(){
+  const somGOD = window.somGOD || {sucesso(){},erro(){}};
+  const form=document.getElementById('form'), msg=document.getElementById('msg'), btn=document.getElementById('enviar');
+  function aviso(t,tipo){msg.textContent=t;msg.className=tipo||''}
+  form.addEventListener('submit',async e=>{
+    e.preventDefault();
+    const d=Object.fromEntries(new FormData(form));
+    if(!d.nome.trim()||!d.usuario.trim()){aviso('Preencha seu nome e seu usuário.','erro');somGOD.erro();return}
+    if(!/^\S+@\S+\.\S+$/.test(d.email)){aviso('Digite um email válido.','erro');somGOD.erro();return}
+    btn.disabled=true; btn.textContent='Enviando...'; aviso('');
+    try{
+      const r=await fetch('/api/inscrever',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)});
+      const j=await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(j.erro||'Não foi possível enviar. Tente de novo.');
+      form.reset(); aviso('Inscrição enviada! Você recebe a resposta por email.','ok'); somGOD.sucesso();
+    }catch(err){aviso(err.message,'erro'); somGOD.erro()}
+    finally{btn.disabled=false; btn.textContent='Enviar inscrição'}
+  });
+})();
+</script>
+</body>
+</html>
