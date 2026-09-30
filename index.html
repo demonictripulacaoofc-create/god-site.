@@ -152,39 +152,74 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-try{(function(){
+(function(){
   const reduzir = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const CEU = 0x1D1350;
   const cores = [0x4DF3FF, 0x8B5CFF, 0xFF3D9A];
   const COMPRIMENTO = 360;
 
+  // Aviso visível se algo do 3D falhar (ajuda a achar o problema)
+  function aviso3d(onde, e){
+    console.error('3D:', onde, e);
+    if(document.getElementById('erro3d')) return;
+    const d = document.createElement('div');
+    d.id = 'erro3d';
+    d.textContent = '3D falhou (' + onde + '): ' + ((e && e.message) || e);
+    d.style.cssText = 'position:fixed;left:.5rem;top:.5rem;z-index:9;max-width:92vw;padding:.4rem .7rem;font:12px monospace;background:#3a0a14;color:#fff;border:1px solid #ff6b8b';
+    document.body.appendChild(d);
+  }
+  if(typeof THREE === 'undefined'){ aviso3d('three.js', 'a biblioteca não carregou'); return; }
+
   // Aleatório com semente, para o mapa ser sempre o mesmo
   function semente(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
   const rnd = semente(20260930);
 
-  // Cria uma malha de blocos (voxels) numa única chamada de desenho
-  function malhaVoxel(cubos, lado, ruido, material){
+  // Malha de blocos: junta tudo numa geometria só e desenha apenas as faces visíveis
+  const EIXOS = [[0,1,1,2],[0,-1,2,1],[1,1,2,0],[1,-1,0,2],[2,1,0,1],[2,-1,1,0]];
+  function malhaVoxel(cubos, passo, ruido, material){
     if(!cubos.length) return null;
-    const geo = Array.isArray(lado) ? new THREE.BoxGeometry(lado[0],lado[1],lado[2]) : new THREE.BoxGeometry(lado,lado,lado);
-    const m = new THREE.InstancedMesh(geo, material || new THREE.MeshLambertMaterial(), cubos.length);
-    const m4 = new THREE.Matrix4(), c = new THREE.Color();
-    for(let i=0;i<cubos.length;i++){
-      const v = cubos[i];
-      m4.setPosition(v.x, v.y, v.z);
-      m.setMatrixAt(i, m4);
-      c.setHex(v.cor);
-      if(ruido) c.multiplyScalar(1 + (rnd()-.5)*ruido);
-      m.setColorAt(i, c);
-    }
-    m.instanceMatrix.needsUpdate = true;
-    m.instanceColor.needsUpdate = true;
-    m.frustumCulled = false;
-    return m;
+    const d = Array.isArray(passo) ? passo : [passo,passo,passo];
+    const chave = (a,b,c)=> a+','+b+','+c;
+    const ocupado = new Set();
+    cubos.forEach(v=>{
+      v.i = [Math.round(v.x*2/d[0]), Math.round(v.y*2/d[1]), Math.round(v.z*2/d[2])];
+      ocupado.add(chave(v.i[0],v.i[1],v.i[2]));
+    });
+    const pos=[], nor=[], col=[], ind=[];
+    const cc = new THREE.Color();
+    let n = 0;
+    cubos.forEach(v=>{
+      cc.setHex(v.cor);
+      const f = ruido ? 1 + (rnd()-.5)*ruido : 1;
+      const R=cc.r*f, G=cc.g*f, B=cc.b*f;
+      EIXOS.forEach(e=>{
+        const a=e[0], s=e[1], u=e[2], w=e[3];
+        const nb = v.i.slice(); nb[a] += 2*s;
+        if(ocupado.has(chave(nb[0],nb[1],nb[2]))) return;
+        const nv=[0,0,0]; nv[a]=s;
+        [[-1,-1],[1,-1],[1,1],[-1,1]].forEach(q=>{
+          const p=[v.x,v.y,v.z];
+          p[a] += s*d[a]/2; p[u] += q[0]*d[u]/2; p[w] += q[1]*d[w]/2;
+          pos.push(p[0],p[1],p[2]); nor.push(nv[0],nv[1],nv[2]); col.push(R,G,B);
+        });
+        ind.push(n,n+1,n+2,n,n+2,n+3); n += 4;
+      });
+    });
+    if(!n) return null;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+    geo.setAttribute('normal', new THREE.Float32BufferAttribute(nor,3));
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(col,3));
+    geo.setIndex(ind);
+    return new THREE.Mesh(geo, material || new THREE.MeshLambertMaterial({vertexColors:true}));
   }
 
   // ---------- Cena principal: mapa de Minecraft ----------
   const canvas = document.getElementById('cena');
-  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false});
+  let renderer;
+  try{
+    renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:false});
+  }catch(e){ aviso3d('WebGL', e); return; }
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(CEU);
@@ -198,134 +233,133 @@ try{(function(){
 
   // Terreno em blocos
   const BS = 2, COLS = 60, ROWS = 260, AGUA = 3, CH = 20, ZI = 20;
-  const alturas = new Int16Array(COLS*ROWS);
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    let v = 5 + 3.2*Math.sin(c*0.09 + r*0.045) + 2.6*Math.sin(r*0.075 - c*0.06 + 1.7)
-              + 1.4*Math.sin(c*0.23 + r*0.19) + 0.9*Math.sin(c*0.41 - r*0.37 + 2);
-    v += Math.pow(Math.abs(c - COLS/2)/(COLS/2), 2.2) * 7;
-    alturas[r*COLS+c] = Math.max(1, Math.round(v));
-  }
-  const alt = (c,r)=> (c<0||c>=COLS||r<0||r>=ROWS) ? null : alturas[r*COLS+c];
-
-  const listas = [];
-  for(let k=0;k<Math.ceil(ROWS/CH);k++) listas.push([]);
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    const h = alturas[r*COLS+c], L = listas[Math.floor(r/CH)];
-    const wx = (c-COLS/2)*BS + BS/2, wz = ZI - r*BS;
-    if(h < AGUA){ L.push({x:wx, y:AGUA*BS, z:wz, cor:0x2f78e8}); continue; }
-    const viz = [alt(c-1,r),alt(c+1,r),alt(c,r-1),alt(c,r+1)].map(v=> v===null ? h : Math.max(v,AGUA));
-    const ybot = Math.max(0, Math.min(h, Math.min(...viz)+1));
-    const neve = h>=13, pedra = h>=9 && !neve, areia = h<=AGUA+1;
-    const topo = neve ? 0xf2f6ff : pedra ? 0x8c8c94 : areia ? 0xe0cf8f : 0x55a23f;
-    for(let y=ybot;y<=h;y++){
-      let cor = topo;
-      if(y!==h){
-        if(neve||pedra) cor = 0x77777f;
-        else cor = (y>=h-2) ? (areia ? 0xd8c684 : 0x8a5a34) : 0x77777f;
-      }
-      L.push({x:wx, y:y*BS, z:wz, cor});
+  let chunks = [], nuvens = null, lua = null, estrelas = null;
+  let alturaAlvo = ()=>14, baseY = 14, startY = 14;
+  try{
+    const alturas = new Int16Array(COLS*ROWS);
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      let v = 5 + 3.2*Math.sin(c*0.09 + r*0.045) + 2.6*Math.sin(r*0.075 - c*0.06 + 1.7)
+                + 1.4*Math.sin(c*0.23 + r*0.19) + 0.9*Math.sin(c*0.41 - r*0.37 + 2);
+      v += Math.pow(Math.abs(c - COLS/2)/(COLS/2), 2.2) * 7;
+      alturas[r*COLS+c] = Math.max(1, Math.round(v));
     }
-    // Árvores
-    if(!neve && !pedra && !areia && h<=8 && rnd()<0.018){
-      for(let i=1;i<=4;i++) L.push({x:wx, y:(h+i)*BS, z:wz, cor:0x6b4a2b});
-      for(let dy=3;dy<=5;dy++){
-        const rad = dy<5 ? 2 : 1;
-        for(let dx=-rad;dx<=rad;dx++) for(let dz=-rad;dz<=rad;dz++){
-          if(rad===2 && Math.abs(dx)===2 && Math.abs(dz)===2) continue;
-          if(dy<=4 && dx===0 && dz===0) continue;
-          L.push({x:wx+dx*BS, y:(h+dy)*BS, z:wz+dz*BS, cor:0x2f7d2a});
+    const alt = (c,r)=> (c<0||c>=COLS||r<0||r>=ROWS) ? null : alturas[r*COLS+c];
+
+    const listas = [];
+    for(let k=0;k<Math.ceil(ROWS/CH);k++) listas.push([]);
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      const h = alturas[r*COLS+c], L = listas[Math.floor(r/CH)];
+      const wx = (c-COLS/2)*BS + BS/2, wz = ZI - r*BS;
+      if(h < AGUA){ L.push({x:wx, y:AGUA*BS, z:wz, cor:0x2f78e8}); continue; }
+      const viz = [alt(c-1,r),alt(c+1,r),alt(c,r-1),alt(c,r+1)].map(v=> v===null ? h : Math.max(v,AGUA));
+      const ybot = Math.max(0, Math.min(h, Math.min.apply(null,viz)+1));
+      const neve = h>=13, pedra = h>=9 && !neve, areia = h<=AGUA+1;
+      const topo = neve ? 0xf2f6ff : pedra ? 0x8c8c94 : areia ? 0xe0cf8f : 0x55a23f;
+      for(let y=ybot;y<=h;y++){
+        let cor = topo;
+        if(y!==h){
+          if(neve||pedra) cor = 0x77777f;
+          else cor = (y>=h-2) ? (areia ? 0xd8c684 : 0x8a5a34) : 0x77777f;
+        }
+        L.push({x:wx, y:y*BS, z:wz, cor});
+      }
+      if(!neve && !pedra && !areia && h<=8 && rnd()<0.018){
+        for(let i=1;i<=4;i++) L.push({x:wx, y:(h+i)*BS, z:wz, cor:0x6b4a2b});
+        for(let dy=3;dy<=5;dy++){
+          const rad = dy<5 ? 2 : 1;
+          for(let dx=-rad;dx<=rad;dx++) for(let dz=-rad;dz<=rad;dz++){
+            if(rad===2 && Math.abs(dx)===2 && Math.abs(dz)===2) continue;
+            if(dy<=4 && dx===0 && dz===0) continue;
+            L.push({x:wx+dx*BS, y:(h+dy)*BS, z:wz+dz*BS, cor:0x2f7d2a});
+          }
         }
       }
     }
-  }
-  const chunks = [];
-  listas.forEach((L,k)=>{
-    const m = malhaVoxel(L, BS, 0.12);
-    if(!m) return;
-    scene.add(m);
-    chunks.push({m, zmin: ZI-(k+1)*CH*BS - 8, zmax: ZI-k*CH*BS + 8});
-  });
+    listas.forEach((L,k)=>{
+      const m = malhaVoxel(L, BS, 0.12);
+      if(!m) return;
+      scene.add(m);
+      chunks.push({m, zmin: ZI-(k+1)*CH*BS - 8, zmax: ZI-k*CH*BS + 8});
+    });
 
-  // Altura do chão sob a câmera (com folga para árvores)
-  function solo(x,z){
-    const c = Math.floor(x/BS + COLS/2), r = Math.floor((ZI-z)/BS);
-    let m = AGUA;
-    for(let dc=-3;dc<=3;dc++) for(let dr=-3;dr<=3;dr++){
-      const cc=c+dc, rr=r+dr;
-      if(cc<0||cc>=COLS||rr<0||rr>=ROWS) continue;
-      m = Math.max(m, alturas[rr*COLS+cc]);
+    const solo = (x,z)=>{
+      const c = Math.floor(x/BS + COLS/2), r = Math.floor((ZI-z)/BS);
+      let m = AGUA;
+      for(let dc=-3;dc<=3;dc++) for(let dr=-3;dr<=3;dr++){
+        const cc=c+dc, rr=r+dr;
+        if(cc<0||cc>=COLS||rr<0||rr>=ROWS) continue;
+        m = Math.max(m, alturas[rr*COLS+cc]);
+      }
+      return m*BS + BS/2;
+    };
+    alturaAlvo = (x,z)=> Math.max(solo(x,z), solo(x,z-30)) + 14;
+    baseY = alturaAlvo(0,12);
+    startY = baseY;
+
+    // Nuvens de blocos
+    const nuv = [];
+    for(let i=0;i<46;i++){
+      const cx=(rnd()-.5)*220, cz=20-rnd()*(COMPRIMENTO+200), cy=72+rnd()*14, n=3+Math.floor(rnd()*5);
+      for(let j=0;j<n;j++) nuv.push({x:cx+(j%3)*8+(rnd()-.5)*3, y:cy+(rnd()<.2?3:0), z:cz+Math.floor(j/3)*8, cor:0xD2C9FF});
     }
-    return m*BS + BS/2;
-  }
-  const alturaAlvo = (x,z)=> Math.max(solo(x,z), solo(x,z-30)) + 14;
-  let baseY = alturaAlvo(0,12), offY = 0;
-  const startY = baseY;
+    nuvens = malhaVoxel(nuv, [8,3,8], 0.1, new THREE.MeshBasicMaterial({vertexColors:true, transparent:true, opacity:.5}));
+    if(nuvens) scene.add(nuvens);
+  }catch(e){ aviso3d('mapa', e); }
   camera.position.set(0, baseY, 12);
 
-  // Nuvens de blocos
-  const nuv = [];
-  for(let i=0;i<46;i++){
-    const cx=(rnd()-.5)*220, cz=20-rnd()*(COMPRIMENTO+200), cy=72+rnd()*14, n=3+Math.floor(rnd()*5);
-    for(let j=0;j<n;j++) nuv.push({x:cx+(j%3)*8+(rnd()-.5)*3, y:cy+(rnd()<.2?3:0), z:cz+Math.floor(j/3)*8, cor:0xD2C9FF});
-  }
-  const nuvens = malhaVoxel(nuv, [8,3,8], 0.1, new THREE.MeshBasicMaterial({transparent:true, opacity:.5}));
-  scene.add(nuvens);
-
   // Lua quadrada e estrelas, acompanham a câmera
-  const lua = new THREE.Group();
-  lua.add(new THREE.Mesh(new THREE.BoxGeometry(16,16,3), new THREE.MeshBasicMaterial({color:0xfff1c9, fog:false})));
-  [[-3,2],[3,-3],[4,4]].forEach(([x,y])=>{
-    const cr = new THREE.Mesh(new THREE.BoxGeometry(4,4,.5), new THREE.MeshBasicMaterial({color:0xe3cb96, fog:false}));
-    cr.position.set(x,y,1.8); lua.add(cr);
-  });
-  scene.add(lua);
-
-  const NE = 800, pe = new Float32Array(NE*3);
-  for(let i=0;i<NE;i++){
-    const az=rnd()*Math.PI*2, el=0.1+rnd()*1.2, R=400;
-    pe[i*3]=Math.cos(el)*Math.cos(az)*R; pe[i*3+1]=Math.sin(el)*R; pe[i*3+2]=Math.cos(el)*Math.sin(az)*R;
-  }
-  const geoEstrelas = new THREE.BufferGeometry();
-  geoEstrelas.setAttribute('position', new THREE.BufferAttribute(pe,3));
-  const estrelas = new THREE.Points(geoEstrelas, new THREE.PointsMaterial({color:0xE8ECFF, size:2, sizeAttenuation:false, fog:false}));
-  scene.add(estrelas);
+  try{
+    lua = new THREE.Group();
+    lua.add(new THREE.Mesh(new THREE.BoxGeometry(16,16,3), new THREE.MeshBasicMaterial({color:0xfff1c9, fog:false})));
+    [[-3,2],[3,-3],[4,4]].forEach(p=>{
+      const cr = new THREE.Mesh(new THREE.BoxGeometry(4,4,.5), new THREE.MeshBasicMaterial({color:0xe3cb96, fog:false}));
+      cr.position.set(p[0],p[1],1.8); lua.add(cr);
+    });
+    scene.add(lua);
+    const NE = 800, pe = new Float32Array(NE*3);
+    for(let i=0;i<NE;i++){
+      const az=rnd()*Math.PI*2, el=0.1+rnd()*1.2, R=400;
+      pe[i*3]=Math.cos(el)*Math.cos(az)*R; pe[i*3+1]=Math.sin(el)*R; pe[i*3+2]=Math.cos(el)*Math.sin(az)*R;
+    }
+    const geoE = new THREE.BufferGeometry();
+    geoE.setAttribute('position', new THREE.BufferAttribute(pe,3));
+    estrelas = new THREE.Points(geoE, new THREE.PointsMaterial({color:0xE8ECFF, size:2, sizeAttenuation:false, fog:false}));
+    scene.add(estrelas);
+  }catch(e){ aviso3d('céu', e); lua = null; estrelas = null; }
 
   // ---------- Tela principal: conjunto de objetos 3D animados ----------
-  const ben = new THREE.Group();
-  const knot = new THREE.Mesh(
-    new THREE.TorusKnotGeometry(2.2, 0.5, 140, 14, 2, 3),
-    new THREE.MeshBasicMaterial({color:0x4DF3FF, wireframe:true})
-  );
-  ben.add(knot);
-  const cuboGeo = new THREE.BoxGeometry(2.4, 2.4, 2.4);
-  const cubo = new THREE.Group();
-  cubo.add(new THREE.LineSegments(new THREE.EdgesGeometry(cuboGeo), new THREE.LineBasicMaterial({color:0xFF3D9A})));
-  cubo.add(new THREE.Mesh(cuboGeo, new THREE.MeshBasicMaterial({color:0xFF3D9A, transparent:true, opacity:.16})));
-  cubo.position.set(-4.6, -3.6, 1.5);
-  ben.add(cubo);
-  const octa = new THREE.Mesh(new THREE.OctahedronGeometry(1.3, 0), new THREE.MeshBasicMaterial({color:0x8B5CFF, wireframe:true}));
-  octa.position.set(4.4, 3.8, -1);
-  ben.add(octa);
-  const anel = new THREE.Mesh(
-    new THREE.TorusGeometry(6.2, 0.03, 6, 90),
-    new THREE.MeshBasicMaterial({color:0x8B5CFF, transparent:true, opacity:.55})
-  );
-  anel.rotation.x = Math.PI/2.4;
-  ben.add(anel);
-  const satelites = [];
-  for(let i=0;i<6;i++){
-    const pivo = new THREE.Group();
-    const tet = new THREE.Mesh(new THREE.TetrahedronGeometry(0.4), new THREE.MeshBasicMaterial({color:cores[i%3]}));
-    tet.position.x = 6.2;
-    pivo.add(tet);
-    pivo.rotation.set(i*0.6, i*1.05, i*0.5);
-    pivo.userData.v = 0.006 + i*0.0015;
-    ben.add(pivo);
-    satelites.push({pivo, tet});
-  }
-  scene.add(ben);
+  let ben = null, knot, cubo, octa, anel, satelites = [];
+  try{
+    ben = new THREE.Group();
+    knot = new THREE.Mesh(new THREE.TorusKnotGeometry(2.2, 0.5, 140, 14, 2, 3), new THREE.MeshBasicMaterial({color:0x4DF3FF, wireframe:true}));
+    ben.add(knot);
+    const cuboGeo = new THREE.BoxGeometry(2.4, 2.4, 2.4);
+    cubo = new THREE.Group();
+    cubo.add(new THREE.LineSegments(new THREE.EdgesGeometry(cuboGeo), new THREE.LineBasicMaterial({color:0xFF3D9A})));
+    cubo.add(new THREE.Mesh(cuboGeo, new THREE.MeshBasicMaterial({color:0xFF3D9A, transparent:true, opacity:.16})));
+    cubo.position.set(-4.6, -3.6, 1.5);
+    ben.add(cubo);
+    octa = new THREE.Mesh(new THREE.OctahedronGeometry(1.3, 0), new THREE.MeshBasicMaterial({color:0x8B5CFF, wireframe:true}));
+    octa.position.set(4.4, 3.8, -1);
+    ben.add(octa);
+    anel = new THREE.Mesh(new THREE.TorusGeometry(6.2, 0.03, 6, 90), new THREE.MeshBasicMaterial({color:0x8B5CFF, transparent:true, opacity:.55}));
+    anel.rotation.x = Math.PI/2.4;
+    ben.add(anel);
+    for(let i=0;i<6;i++){
+      const pivo = new THREE.Group();
+      const tet = new THREE.Mesh(new THREE.TetrahedronGeometry(0.4), new THREE.MeshBasicMaterial({color:cores[i%3]}));
+      tet.position.x = 6.2;
+      pivo.add(tet);
+      pivo.rotation.set(i*0.6, i*1.05, i*0.5);
+      pivo.userData.v = 0.006 + i*0.0015;
+      ben.add(pivo);
+      satelites.push({pivo, tet});
+    }
+    scene.add(ben);
+  }catch(e){ aviso3d('objetos', e); ben = null; }
 
   function posicionar(){
+    if(!ben) return;
     const larga = innerWidth >= 700, dist = 24;
     ben.position.set(larga ? 11 : 0, startY + (larga ? -3 : 14), 12 - dist);
     ben.scale.setScalar(larga ? 1 : 0.6);
@@ -365,67 +399,9 @@ try{(function(){
     tam();
     return { desenhar(t){ if(!visivel) return; anim(t); r.render(cena,cam); } };
   }
+  function seguro(nome, fn){ try{ return fn(); }catch(e){ aviso3d(nome, e); return null; } }
 
-  // Gema de diamante feita de blocos
   function criarGema(){
     const cubos = [];
     for(let x=-6;x<=6;x++) for(let y=-8;y<=8;y++) for(let z=-6;z<=6;z++){
-      const d = Math.abs(x) + Math.abs(z) + Math.abs(y)*0.75;
-      if(d>5.2 || d<3.6) continue;
-      const cor = y>=3 ? 0xB9FCFF : y>=0 ? 0x4DF3FF : y>=-3 ? 0x27C6DB : 0x1697AD;
-      cubos.push({x,y,z,cor});
-    }
-    const g = new THREE.Group();
-    g.add(malhaVoxel(cubos, 0.95, 0.06, new THREE.MeshLambertMaterial({emissive:0x0b3a44})));
-    return g;
-  }
-  const gema = vitrine('gema3d', cena=>{
-    const grande = criarGema();
-    grande.scale.setScalar(0.55);
-    grande.rotation.x = 0.2;
-    cena.add(grande);
-    const pequenas = [];
-    for(let i=0;i<3;i++){
-      const pivo = new THREE.Group();
-      const g = criarGema();
-      g.scale.setScalar(0.12);
-      g.position.x = 6.5;
-      pivo.add(g);
-      pivo.rotation.set(i*0.5, i*2.1, i*0.4);
-      pivo.userData.v = 0.008 + i*0.002;
-      cena.add(pivo);
-      pequenas.push({pivo,g});
-    }
-    return t=>{
-      if(reduzir) return;
-      grande.rotation.y += 0.014;
-      grande.position.y = Math.sin(t*1.5)*0.5;
-      pequenas.forEach(p=>{ p.pivo.rotation.y += p.pivo.userData.v; p.g.rotation.y += 0.05; });
-    };
-  });
-
-  // Moeda pixel estilo Minecraft (com T no lugar do M)
-  function criarMoeda(){
-    const G = 14;
-    const c = {borda:0xFFE27A, brilho:0xFFD65A, ouro:0xF6B92B, sombra:0xC98A12, lado:0xB87A0E, t:0x7A4A08};
-    const dentro = (x,y)=>{ const dx=x-6.5, dy=y-6.5; return dx*dx+dy*dy <= 6.6*6.6; };
-    const ehT = (x,y)=> ((y===9||y===10) && x>=4 && x<=9) || (y>=3 && y<=8 && (x===6||x===7));
-    const cubos = [];
-    for(let x=0;x<G;x++) for(let y=0;y<G;y++){
-      if(!dentro(x,y)) continue;
-      const borda = !dentro(x-1,y)||!dentro(x+1,y)||!dentro(x,y-1)||!dentro(x,y+1);
-      for(let z=0;z<3;z++){
-        let cor;
-        if(z===1) cor = c.lado;
-        else if(borda) cor = c.borda;
-        else if(ehT(x,y)) cor = c.t;
-        else {
-          cor = c.ouro;
-          if(x-y >= 3) cor = c.sombra;
-          else if(y-x >= 5 && (x+y)%2===0) cor = c.brilho;
-        }
-        cubos.push({x:x-6.5, y:y-6.5, z:z-1, cor});
-      }
-    }
-    const g = new THREE.Group();
-    g.add(mal
+      const d = Math.abs(x) + Mat
