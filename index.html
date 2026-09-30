@@ -611,7 +611,13 @@
   };
   function tocar(nome, arg){ if(ligado && ctx && ctx.state==='running') efeitos[nome](arg); }
   window.somGOD = {sucesso:()=>tocar('sucesso'), erro:()=>tocar('erro')};
-
+const musicaFundo = document.getElementById('musica') || Object.assign(new Audio('musica-1.mp3'), {loop:true});
+musicaFundo.volume = 0.5;
+try{
+  tocarTrilha = function(){ musicaFundo.play().catch(()=>{}); };
+  pararTrilha = function(){ musicaFundo.pause(); };
+}catch(e){ console.error(e); }
+document.addEventListener('visibilitychange', ()=>{ if(document.hidden) musicaFundo.pause(); });
   function ligar(){
     if(!ctx) iniciar();
     ctx.resume();
